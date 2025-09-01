@@ -42,23 +42,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize processors
+# Initialize processors independently so failures don't take down the whole app
+video_processor = None
+audio_processor = None
+text_processor = None
+scoring_engine = None
+
+# Resolve model paths via environment variables or default to this repo's Code/ directory
+root_dir = Path(__file__).resolve().parents[1]
+model_path = os.getenv("MODEL_PATH") or os.path.join(root_dir, "Code", "model.h5")
+cascade_path = os.getenv("CASCADE_PATH") or os.path.join(root_dir, "Code", "haarcascade_frontalface_default.xml")
+
 try:
-    model_path = "/Users/rishirajdatta7/CascadeProjects/Digital-Hiring/Code/model.h5"
-    cascade_path = "/Users/rishirajdatta7/CascadeProjects/Digital-Hiring/Code/haarcascade_frontalface_default.xml"
-    
     video_processor = VideoProcessor(model_path=model_path, cascade_path=cascade_path)
-    audio_processor = AudioProcessor()
-    text_processor = TextProcessor()
-    scoring_engine = ScoringEngine()
-    
-    logger.info("All processors initialized successfully")
+    logger.info("Video processor initialized")
 except Exception as e:
-    logger.error(f"Error initializing processors: {str(e)}")
-    video_processor = None
-    audio_processor = None
-    text_processor = None
-    scoring_engine = None
+    logger.warning(f"Video processor unavailable: {e}")
+
+try:
+    audio_processor = AudioProcessor()
+    logger.info("Audio processor initialized")
+except Exception as e:
+    logger.warning(f"Audio processor unavailable: {e}")
+
+try:
+    text_processor = TextProcessor()
+    logger.info("Text processor initialized")
+except Exception as e:
+    logger.warning(f"Text processor unavailable: {e}")
+
+try:
+    scoring_engine = ScoringEngine()
+    logger.info("Scoring engine initialized")
+except Exception as e:
+    logger.warning(f"Scoring engine unavailable: {e}")
 
 # In-memory storage for processing results (use Redis/DB in production)
 processing_results = {}

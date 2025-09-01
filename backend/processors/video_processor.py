@@ -8,8 +8,6 @@ import os
 import numpy as np
 import tempfile
 from typing import Dict, List, Tuple
-from keras.models import load_model
-from keras.preprocessing.image import img_to_array
 import logging
 
 logger = logging.getLogger(__name__)
@@ -18,6 +16,15 @@ class VideoProcessor:
     def __init__(self, model_path: str = None, cascade_path: str = None):
         """Initialize video processor with model and cascade classifier"""
         self.emotion_labels = ['Angry', 'Disgust', 'Fear', 'Happy', 'Neutral', 'Sad', 'Surprise']
+        # Lazy imports for Keras to avoid hard dependency at module import time
+        try:
+            from keras.models import load_model  # type: ignore
+            from keras.preprocessing.image import img_to_array  # type: ignore
+            self._load_model = load_model
+            self._img_to_array = img_to_array
+        except Exception as e:
+            # Raise a clear error which will be caught by the app and degrade gracefully
+            raise ImportError("Keras/TensorFlow not installed. Please install tensorflow and keras to enable video processing.") from e
         
         # Load face classifier
         if cascade_path and os.path.exists(cascade_path):
@@ -30,7 +37,7 @@ class VideoProcessor:
         
         # Load emotion detection model
         if model_path and os.path.exists(model_path):
-            self.classifier = load_model(model_path)
+            self.classifier = self._load_model(model_path)
         else:
             raise FileNotFoundError("Emotion detection model not found")
     
@@ -85,7 +92,7 @@ class VideoProcessor:
                 
                 if np.sum([roi_gray]) != 0:
                     roi = roi_gray.astype('float') / 255.0
-                    roi = img_to_array(roi)
+                    roi = self._img_to_array(roi)
                     roi = np.expand_dims(roi, axis=0)
                     
                     prediction = self.classifier.predict(roi)[0]

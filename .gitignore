@@ -3,3 +3,8 @@ frontend/node_modules
 *.mp4
 *.avi
 *.mov
+venv/
+venv311/
+__pycache__/
+*.py[cod]
+*$py.class
