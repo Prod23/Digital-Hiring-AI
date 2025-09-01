@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  digital-hiring-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/app/backend/model.h5
+      - CASCADE_PATH=/app/backend/haarcascade_frontalface_default.xml
+      - UPLOAD_DIR=/tmp/uploads
+      - PROCESSING_DIR=/tmp/processing
+    volumes:
+      - ./uploads:/tmp/uploads
+      - ./processing:/tmp/processing
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Redis for production (replace in-memory storage)
+  # redis:
+  #   image: redis:7-alpine
+  #   ports:
+  #     - "6379:6379"
+  #   restart: unless-stopped
+
+  # Optional: PostgreSQL for production (store results)
+  # postgres:
+  #   image: postgres:15-alpine
+  #   environment:
+  #     POSTGRES_DB: digital_hiring
+  #     POSTGRES_USER: hiring_user
+  #     POSTGRES_PASSWORD: hiring_password
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+  #   restart: unless-stopped
+
+# volumes:
+#   postgres_data:
