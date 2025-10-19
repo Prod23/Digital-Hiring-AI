@@ -297,6 +297,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - Material-UI for React components
 - FastAPI framework for backend development
 
----
-
-**Note**: This system is designed for evaluation purposes. Ensure compliance with local employment laws and ethical AI practices when using for actual hiring decisions.
